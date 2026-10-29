@@ -1,0 +1,674 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>멍냥 건강 지킴이</title>
+<style>
+:root {
+  --pink:#f3a6bb; --dark:#55434b; --cream:#fff9f3;
+  --green:#a6cba9; --line:#f0e1dc;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; font-family:Arial,"Malgun Gothic",sans-serif;
+  background:#fff3f4; color:var(--dark);
+}
+button,input { font:inherit; }
+button {
+  border:0; border-radius:13px; padding:11px 14px;
+  background:#f5dbe4; color:#634653; cursor:pointer;
+  transition:transform .15s,opacity .15s;
+}
+button:hover { transform:translateY(-2px); }
+button:disabled { opacity:.45; cursor:not-allowed; transform:none; }
+button.primary { background:#df86a4; color:white; }
+button.green { background:#d9ead9; }
+button.small { padding:7px 10px; font-size:13px; }
+button.active { outline:2px solid #cc7392; }
+header {
+  background:#fffdfb; border-bottom:1px solid var(--line);
+  padding:17px; text-align:center;
+}
+header h1 { margin:0; color:#ca7593; font-size:24px; }
+header p { margin:7px 0 0; font-size:13px; color:#947782; }
+main { max-width:1050px; margin:22px auto; padding:0 15px 35px; }
+.panel {
+  background:#fffdfb; border:1px solid var(--line);
+  border-radius:21px; padding:19px; margin-bottom:15px;
+  box-shadow:0 5px 17px #d8b9bd20;
+}
+h2 { font-size:18px; margin:0 0 14px; }
+h3 { font-size:15px; margin:0 0 10px; }
+p { line-height:1.6; }
+.muted { color:#987f88; font-size:13px; }
+.row { display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+.between { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.layout { display:grid; grid-template-columns:1.05fr 1fr; gap:15px; }
+.stat { margin:13px 0; }
+.stat-head { display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; }
+.bar { height:9px; border-radius:20px; background:#f1e7e8; overflow:hidden; }
+.fill { height:100%; border-radius:20px; transition:width .3s; }
+.pet-area {
+  min-height:265px; border-radius:18px; background:#fff0df;
+  display:flex; flex-direction:column; justify-content:center;
+  align-items:center; overflow:hidden; position:relative;
+}
+.pet-area::before {
+  content:""; position:absolute; bottom:0; height:32px;
+  background:#e2d9ba; width:100%;
+}
+.pet-area svg { width:205px; max-width:85%; z-index:1; }
+.pet-name { z-index:1; font-size:18px; font-weight:bold; margin-top:4px; }
+.pet-face { font-size:13px; color:#92737d; z-index:1; margin-top:4px; }
+.pet-float { position:absolute; top:14px; right:14px; z-index:2; }
+.log {
+  height:145px; overflow-y:auto; background:#fff8f7;
+  border-radius:13px; padding:12px; font-size:13px;
+}
+.log p { margin:5px 0 10px; }
+.action-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.action-grid button { min-height:74px; line-height:1.5; }
+.action-grid button span { display:block; font-size:21px; }
+.card {
+  border:1px solid var(--line); border-radius:13px; padding:12px;
+  background:#fffaf8;
+}
+.card p { font-size:12px; margin:5px 0; }
+input {
+  min-width:0; border:1px solid #e9d6dd; border-radius:10px;
+  padding:11px; background:white; color:var(--dark);
+}
+.notice {
+  background:#fff2ce; padding:12px; border-radius:12px;
+  font-size:13px; line-height:1.6; margin:10px 0;
+}
+.overlay {
+  position:fixed; inset:0; z-index:10; background:#47333d99;
+  display:flex; justify-content:center; align-items:center;
+  padding:18px; overflow-y:auto;
+}
+.modal {
+  width:100%; max-width:490px; background:#fffdfb;
+  border-radius:22px; padding:24px; max-height:90vh; overflow-y:auto;
+}
+.hidden { display:none !important; }
+footer { text-align:center; font-size:12px; color:#a18a92; padding:10px; }
+@keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+.pet-area svg { animation:bob 2.2s ease-in-out infinite; }
+@media(max-width:680px) {
+  .layout { grid-template-columns:1fr; }
+  .grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  main { margin-top:12px; padding:0 10px 25px; }
+  .panel { padding:15px; }
+  header h1 { font-size:21px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>🐾 멍냥 건강 지킴이</h1>
+  <p>작은 돌봄이 모여 건강한 하루를 만들어요!</p>
+</header>
+
+<main>
+  <section id="startScreen" class="panel">
+    <h2>나만의 반려동물 만들기 🏡</h2>
+    <p>15일 동안 가상의 반려동물을 돌보며 건강관리 방법을 배워 보세요.</p>
+    <div class="grid">
+      <button id="dogPick" class="active" onclick="choosePet('dog')">🐶 강아지</button>
+      <button id="catPick" onclick="choosePet('cat')">🐱 고양이</button>
+    </div>
+    <p class="muted">반려동물의 이름을 정해 주세요.</p>
+    <div class="row">
+      <input id="nameInput" maxlength="10" placeholder="예: 초코" value="초코" style="flex:1">
+      <button class="primary" onclick="startGame()">돌봄 시작하기</button>
+    </div>
+  </section>
+
+  <section id="gameScreen" class="hidden">
+    <div class="panel">
+      <div class="between">
+        <div>
+          <div class="muted">오늘의 돌봄 기록</div>
+          <h2 id="dayTitle" style="margin:5px 0">1일차 / 15일</h2>
+        </div>
+        <div style="text-align:right">
+          <div>⚡ 행동력 <b id="apText">2 / 2</b></div>
+          <div>🪙 코인 <b id="coinText">20</b></div>
+        </div>
+      </div>
+      <div class="bar"><div id="dayBar" class="fill" style="width:6.67%;background:#e99bb5"></div></div>
+      <p class="muted">하루에 행동력 2칸을 사용할 수 있어요. 건강검진은 하루 전체를 사용해요.</p>
+    </div>
+
+    <div class="layout">
+      <div>
+        <section class="panel">
+          <div class="between">
+            <h2>나의 반려동물</h2>
+            <button class="small" onclick="renamePet()">이름 변경</button>
+          </div>
+          <div id="petArea" class="pet-area">
+            <div class="pet-float" id="moodEmoji">😊</div>
+            <div id="petSvg"></div>
+            <div class="pet-name" id="petName">초코</div>
+            <div class="pet-face" id="petFace">기분이 좋아요!</div>
+          </div>
+          <div class="grid" style="margin-top:12px">
+            <div class="card"><div class="muted">❤️ 건강</div><h2 id="healthText">100</h2><div class="bar"><div id="healthBar" class="fill" style="background:#e99baa"></div></div></div>
+            <div class="card"><div class="muted">😊 기분</div><h2 id="moodText">100</h2><div class="bar"><div id="moodBar" class="fill" style="background:#edc276"></div></div></div>
+            <div class="card"><div class="muted">⚖️ 체중</div><h2 id="weightText">5.0kg</h2><p id="weightLabel" class="muted">적정 범위</p></div>
+            <div class="card"><div class="muted">🌱 성장</div><h2 id="stageText">아기</h2><p id="evolutionText" class="muted">건강하게 성장 중</p></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>📊 건강 상태</h2>
+          <div id="stats"></div>
+        </section>
+      </div>
+
+      <div>
+        <section class="panel">
+          <h2>💗 오늘의 돌봄</h2>
+          <div class="action-grid">
+            <button onclick="act('food')"><span>🥣</span>밥 주기<small> · 1 AP</small></button>
+            <button onclick="act('walk')"><span>🦮</span>산책하기<small> · 1 AP</small></button>
+            <button onclick="act('play')"><span>🧸</span>놀아주기<small> · 1 AP</small></button>
+            <button onclick="act('bath')"><span>🛁</span>목욕하기<small> · 1 AP</small></button>
+            <button onclick="act('sleep')"><span>💤</span>휴식하기<small> · 1 AP</small></button>
+            <button onclick="act('checkup')"><span>🩺</span>건강검진<small> · 2 AP</small></button>
+          </div>
+          <div class="row" style="margin-top:12px">
+            <button class="green" onclick="interact('pet')">🤍 쓰다듬기</button>
+            <button class="green" onclick="interact('talk')">💬 말 걸기</button>
+            <button onclick="openMiniGame()">🎯 미니게임</button>
+          </div>
+          <div id="actionMessage" class="notice">반려동물이 기다리고 있어요. 어떤 행동을 해 볼까요?</div>
+        </section>
+
+        <section class="panel">
+          <h2>🪴 배경 꾸미기 상점</h2>
+          <p class="muted">돌봄으로 얻은 코인으로 공간을 꾸며 보세요.</p>
+          <div class="grid">
+            <div class="card"><h3>🌳 숲속 정원</h3><p>코인 15개</p><button class="small" onclick="buyBackground('garden',15)">구매 / 적용</button></div>
+            <div class="card"><h3>🌊 바닷가</h3><p>코인 25개</p><button class="small" onclick="buyBackground('beach',25)">구매 / 적용</button></div>
+            <div class="card"><h3>🌙 별빛 밤</h3><p>코인 30개</p><button class="small" onclick="buyBackground('night',30)">구매 / 적용</button></div>
+            <div class="card"><h3>🏡 기본 방</h3><p>무료</p><button class="small" onclick="buyBackground('home',0)">적용</button></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="between"><h2>📖 돌봄 일지</h2><span class="muted">최근 기록</span></div>
+          <div id="log" class="log"></div>
+          <div class="row" style="margin-top:12px">
+            <button class="primary" onclick="nextDay()">🌞 하루 마치기</button>
+            <button onclick="saveGame()">💾 저장하기</button>
+          </div>
+          <p class="muted">행동력을 모두 쓰지 않아도 하루를 마칠 수 있어요.</p>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <section id="endScreen" class="panel hidden"></section>
+</main>
+
+<div id="modalRoot" class="hidden"></div>
+<footer>멍냥 건강 지킴이 · 학습용 가상 반려동물 돌봄 시뮬레이션</footer>
+
+<script>
+const MAX_DAY = 15;
+const initialStats = () => ({
+  fullness:75, cleanliness:80, energy:80, affection:70,
+  health:100, mood:80, weight:5
+});
+
+let petType = "dog";
+let game = null;
+let ownedBackgrounds = ["home"];
+let selectedAnswer = null;
+let miniQuestion = null;
+
+const backgrounds = {
+  home:   {name:"기본 방", color:"#fff0df"},
+  garden: {name:"숲속 정원", color:"#e1f0d8"},
+  beach:  {name:"바닷가", color:"#d9eff7"},
+  night:  {name:"별빛 밤", color:"#dedcf7"}
+};
+
+function choosePet(type) {
+  petType = type;
+  document.getElementById("dogPick").classList.toggle("active",type==="dog");
+  document.getElementById("catPick").classList.toggle("active",type==="cat");
+}
+
+function startGame() {
+  const name = document.getElementById("nameInput").value.trim() || "초코";
+  game = {
+    name, type:petType, day:1, ap:2, coins:20,
+    stats:initialStats(), weight:5, actions:0,
+    stage:"아기", evolution:"건강하게 성장 중",
+    background:"home", log:[], ended:false, score:0,
+    history:[], quizCount:0
+  };
+  ownedBackgrounds = ["home"];
+  document.getElementById("startScreen").classList.add("hidden");
+  document.getElementById("endScreen").classList.add("hidden");
+  document.getElementById("gameScreen").classList.remove("hidden");
+  log("돌봄 시작! "+game.name+"와 15일간 함께해요.");
+  update();
+}
+
+function clamp(n) { return Math.max(0,Math.min(100,n)); }
+
+function change(key,amount) {
+  game.stats[key] = clamp(game.stats[key] + amount);
+}
+
+function log(message) {
+  if (!game) return;
+  game.log.unshift({day:game.day,message});
+  game.log = game.log.slice(0,40);
+  const el = document.getElementById("log");
+  if (el) el.innerHTML = game.log.map(item =>
+    `<p><b>${item.day}일차</b> · ${escapeHTML(item.message)}</p>`
+  ).join("");
+}
+
+function escapeHTML(text) {
+  return String(text).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+
+function moodInfo() {
+  const s = game.stats;
+  if (s.health < 25) return {face:"아픔",emoji:"🤒"};
+  if (s.health < 50) return {face:"우울",emoji:"😿"};
+  if (s.energy < 25 || s.fullness < 20) return {face:"피곤",emoji:"😴"};
+  if (s.mood > 75 && s.affection > 55) return {face:"행복",emoji:"🥰"};
+  return {face:"평온",emoji:game.type==="dog"?"🐶":"🐱"};
+}
+
+function petSVG() {
+  const cat = game.type==="cat";
+  const face = moodInfo().face;
+  const body = cat ? "#f3c99e" : "#e8bc8b";
+  const ear = cat
+    ? `<path d="M65 78 L67 20 L112 62 Q150 47 183 62 L222 20 L229 81" fill="${body}" stroke="#9c7459" stroke-width="4" stroke-linejoin="round"/>`
+    : `<path d="M75 62 Q29 42 42 111 Q48 144 85 121 M218 62 Q267 42 255 111 Q248 144 213 121" fill="${body}" stroke="#9c7459" stroke-width="4"/>`;
+  let eyes = '<circle cx="111" cy="104" r="5" fill="#493a35"/><circle cx="191" cy="104" r="5" fill="#493a35"/>';
+  if (face==="아픔" || face==="피곤") {
+    eyes = '<path d="M102 104 Q111 97 120 104 M182 104 Q191 97 200 104" stroke="#493a35" stroke-width="4" fill="none" stroke-linecap="round"/>';
+  }
+  let mouth = face==="행복"
+    ? '<path d="M137 126 Q151 142 165 126" stroke="#80574d" stroke-width="3" fill="none" stroke-linecap="round"/>'
+    : '<path d="M141 128 L155 128" stroke="#80574d" stroke-width="3" stroke-linecap="round"/>';
+  if (face==="우울" || face==="아픔") {
+    mouth = '<path d="M137 135 Q151 120 165 135" stroke="#80574d" stroke-width="3" fill="none"/>';
+  }
+  return `<svg viewBox="0 0 300 205" role="img" aria-label="${cat?"고양이":"강아지"} 캐릭터">
+    <ellipse cx="150" cy="179" rx="88" ry="13" fill="#b7a58a" opacity=".3"/>
+    <path d="M88 146 Q67 118 84 94 Q98 72 150 72 Q202 72 216 94 Q233 124 212 153 Q198 177 150 177 Q103 177 88 146Z" fill="${body}" stroke="#9c7459" stroke-width="4"/>
+    ${ear}
+    <circle cx="150" cy="94" r="66" fill="${body}" stroke="#9c7459" stroke-width="4"/>
+    ${cat ? '<path d="M79 68 L90 39 L111 55 M190 55 L212 39 L221 68" fill="#e8a4a9"/>' : '<ellipse cx="150" cy="119" rx="34" ry="25" fill="#fff0df"/>'}
+    ${eyes}
+    <ellipse cx="150" cy="118" rx="7" ry="5" fill="#77534a"/>
+    ${mouth}
+    <circle cx="96" cy="120" r="9" fill="#e9959b" opacity=".55"/>
+    <circle cx="204" cy="120" r="9" fill="#e9959b" opacity=".55"/>
+    ${cat ? '<path d="M81 121 L45 115 M83 130 L48 135 M219 121 L255 115 M217 130 L252 135" stroke="#9c7459" stroke-width="2" fill="none"/>' : ''}
+  </svg>`;
+}
+
+function update() {
+  if (!game) return;
+  const s = game.stats;
+  const mood = moodInfo();
+  document.getElementById("dayTitle").textContent = `${game.day}일차 / ${MAX_DAY}일`;
+  document.getElementById("dayBar").style.width = `${game.day/MAX_DAY*100}%`;
+  document.getElementById("apText").textContent = `${game.ap} / 2`;
+  document.getElementById("coinText").textContent = game.coins;
+  document.getElementById("petName").textContent = game.name;
+  document.getElementById("petSvg").innerHTML = petSVG();
+  document.getElementById("petFace").textContent = mood.face+" 상태예요.";
+  document.getElementById("moodEmoji").textContent = mood.emoji;
+  document.getElementById("healthText").textContent = Math.round(s.health);
+  document.getElementById("moodText").textContent = Math.round(s.mood);
+  document.getElementById("healthBar").style.width = s.health+"%";
+  document.getElementById("moodBar").style.width = s.mood+"%";
+  document.getElementById("weightText").textContent = game.weight.toFixed(1)+"kg";
+  document.getElementById("weightLabel").textContent =
+    game.weight<4.5?"체중 감소":game.weight>5.8?"체중 증가":"현재 설정상 적정 범위";
+  document.getElementById("stageText").textContent = game.stage;
+  document.getElementById("evolutionText").textContent = game.evolution;
+  document.getElementById("petArea").style.background = backgrounds[game.background].color;
+  document.getElementById("stats").innerHTML = [
+    ["fullness","포만감","🥣","#edbc7e"],
+    ["cleanliness","청결","🛁","#8bc8d6"],
+    ["energy","에너지","⚡","#e9d16c"],
+    ["affection","애정","💗","#e7a2bc"]
+  ].map(([key,label,emoji,color]) => `
+    <div class="stat">
+      <div class="stat-head"><span>${emoji} ${label}</span><b>${Math.round(s[key])}/100</b></div>
+      <div class="bar"><div class="fill" style="width:${s[key]}%;background:${color}"></div></div>
+    </div>`).join("");
+  document.querySelectorAll(".action-grid button").forEach(btn => {
+    btn.disabled = game.ended || game.ap===0;
+  });
+}
+
+function showMessage(text) {
+  document.getElementById("actionMessage").textContent = text;
+}
+
+const actions = {
+  food: {
+    name:"밥 주기", cost:1,
+    run() {
+      if (game.weight >= 6.5) {
+        change("fullness",20); game.weight+=0.15;
+        change("mood",2);
+        return "밥을 먹었어요. 체중도 함께 살펴봐 주세요.";
+      }
+      change("fullness",35); game.weight+=0.25; change("mood",5);
+      return "맛있게 식사했어요! 적절한 식사량은 건강 관리의 기본이에요.";
+    }
+  },
+  walk: {
+    name:"산책하기", cost:1,
+    run() {
+      change("energy",-20); change("mood",15); change("affection",8);
+      change("health",4); game.weight-=0.1;
+      return game.type==="dog"
+        ?"산책하며 기분 전환을 했어요! 날씨와 컨디션에 맞게 산책해 주세요."
+        :"활동 시간을 가졌어요! 고양이에게는 안전한 실내 놀이도 좋은 활동이에요.";
+    }
+  },
+  play: {
+    name:"놀아주기", cost:1,
+    run() {
+      change("energy",-15); change("mood",15); change("affection",12);
+      change("health",2);
+      return "함께 놀며 유대감이 높아졌어요. 놀이 시간은 신체와 정신 건강에 도움이 돼요.";
+    }
+  },
+  bath: {
+    name:"목욕하기", cost:1,
+    run() {
+      change("cleanliness",35); change("mood",-4); change("energy",-5);
+      return "깨끗하게 관리했어요! 목욕 주기는 동물의 종류와 피부 상태에 맞춰 주세요.";
+    }
+  },
+  sleep: {
+    name:"휴식하기", cost:1,
+    run() {
+      change("energy",30); change("health",5); change("mood",5);
+      return "충분히 쉬었어요. 적절한 휴식은 건강 유지에 중요해요.";
+    }
+  },
+  checkup: {
+    name:"건강검진", cost:2,
+    run() {
+      change("health",12);
+      game.coins+=3;
+      return "건강 상태를 확인했어요! 식욕, 활동성, 배변 상태의 변화도 평소에 관찰해 주세요. 이상이 지속되면 수의사에게 상담하세요. 검진 보상 코인 +3";
+    }
+  }
+};
+
+function act(key) {
+  if (!game || game.ended) return;
+  const action = actions[key];
+  if (!action || game.ap < action.cost) {
+    showMessage("행동력이 부족해요. 하루를 마치고 다음 날을 시작해 보세요.");
+    return;
+  }
+  game.ap -= action.cost;
+  game.actions++;
+  const message = action.run();
+  change("health",-Math.max(0, (100-game.stats.fullness)/100*1.5));
+  change("health",-Math.max(0, (100-game.stats.energy)/100*1.2));
+  game.coins += key==="checkup"?0:1;
+  log(action.name+" · "+message);
+  showMessage(message);
+  randomEvent();
+  checkGameOver();
+  update();
+}
+
+function interact(type) {
+  if (!game || game.ended) return;
+  if (type==="pet") {
+    change("affection",3); change("mood",2);
+    showMessage(game.name+"가 쓰다듬는 손길을 느끼며 편안해해요. (무료 상호작용)");
+    log("쓰다듬기 · 애정과 기분이 조금 올랐어요.");
+  } else {
+    change("affection",2); change("mood",2);
+    showMessage(game.name+"에게 다정하게 말을 걸었어요. (무료 상호작용)");
+    log("말 걸기 · 다정한 교감으로 기분이 좋아졌어요.");
+  }
+  update();
+}
+
+function randomEvent() {
+  if (Math.random()>0.22) return;
+  const events = [
+    {text:"새 장난감을 발견했어요! 기분이 좋아졌어요.",run(){change("mood",8);change("affection",3)}},
+    {text:"낯선 소리에 조금 놀랐어요. 안심시켜 주세요.",run(){change("mood",-7)}},
+    {text:"편안하게 낮잠을 잤어요. 에너지가 회복됐어요.",run(){change("energy",8)}},
+    {text:"즐거운 하루! 작은 선물로 코인 3개를 얻었어요.",run(){game.coins+=3}}
+  ];
+  const event = events[Math.floor(Math.random()*events.length)];
+  event.run();
+  log("랜덤 이벤트 · "+event.text);
+}
+
+function nextDay() {
+  if (!game || game.ended) return;
+  game.history.push({
+    day:game.day, health:game.stats.health, mood:game.stats.mood,
+    fullness:game.stats.fullness, energy:game.stats.energy
+  });
+  if (game.day >= MAX_DAY) {
+    finishGame();
+    return;
+  }
+  game.day++;
+  game.ap=2;
+  change("fullness",-18);
+  change("cleanliness",-10);
+  change("energy",-12);
+  change("affection",-5);
+  change("mood",-5);
+  change("health",-Math.max(0,(45-game.stats.fullness)/10));
+  change("health",-Math.max(0,(35-game.stats.cleanliness)/15));
+  change("health",-Math.max(0,(30-game.stats.energy)/12));
+  if (game.day===5) evolve();
+  if (game.day===10) evolve();
+  log("새로운 하루가 시작됐어요! 스탯을 확인하고 돌봄을 계획해 보세요.");
+  const crisis = Math.random()<0.08;
+  if (crisis) {
+    change("health",-12);
+    log("건강 주의 이벤트 · 컨디션이 좋지 않아 보여요. 건강 상태를 자세히 관찰해 주세요.");
+    showMessage("건강 주의 이벤트가 발생했어요. 건강 상태를 확인해 주세요.");
+  } else {
+    showMessage("새로운 하루예요! 오늘은 어떤 돌봄을 해 볼까요?");
+  }
+  checkGameOver();
+  update();
+}
+
+function evolve() {
+  const s=game.stats;
+  if (s.affection>=70 && s.mood>=65) {
+    game.stage=game.day<10?"성장 중":"든든한 친구";
+    game.evolution="교감과 유대감이 돋보여요 💗";
+  } else if (s.energy>=65 && s.health>=65) {
+    game.stage=game.day<10?"성장 중":"활동적인 친구";
+    game.evolution="건강과 활동성이 돋보여요 ⚡";
+  } else {
+    game.stage=game.day<10?"성장 중":"차분한 친구";
+    game.evolution="앞으로도 꾸준한 돌봄이 필요해요 🌱";
+  }
+  log("성장 변화 · "+game.name+"가 "+game.stage+" 단계로 성장했어요!");
+}
+
+function buyBackground(key,cost) {
+  if (!game || game.ended) return;
+  if (ownedBackgrounds.includes(key)) {
+    game.background=key; update();
+    showMessage(backgrounds[key].name+" 배경을 적용했어요!");
+    return;
+  }
+  if (game.coins<cost) {
+    showMessage("코인이 부족해요. 돌봄 활동으로 코인을 모아 보세요.");
+    return;
+  }
+  game.coins-=cost;
+  ownedBackgrounds.push(key);
+  game.background=key;
+  log("상점 · "+backgrounds[key].name+" 배경을 구매했어요.");
+  showMessage(backgrounds[key].name+" 배경을 구매하고 적용했어요!");
+  update();
+}
+
+const quizBank = [
+  {q:"반려동물의 식욕이 갑자기 크게 떨어지고 계속 이어진다면?",a:["며칠 동안 무조건 기다린다","상태를 관찰하고 동물병원에 문의한다","간식을 계속 준다"],correct:1,ex:"식욕 변화가 지속되면 수의사와 상담하는 것이 좋아요."},
+  {q:"반려동물에게 깨끗한 물이 중요한 이유는?",a:["수분 균형 유지에 필요해서","잠을 안 자도 되어서","운동이 필요 없어져서"],correct:0,ex:"물은 체온 조절과 정상적인 신체 기능에 중요해요."},
+  {q:"반려동물의 체중 관리에 도움이 되는 방법은?",a:["무조건 적게 먹이기","상태에 맞는 식사와 적절한 활동","간식만 먹이기"],correct:1,ex:"적절한 식사량과 활동량을 함께 고려해야 해요."},
+  {q:"반려동물의 건강 상태를 확인할 때 살펴볼 것은?",a:["식욕과 활동성의 변화","털 색깔만","장난감의 개수"],correct:0,ex:"식욕, 활동성, 배변 등의 변화는 건강 상태를 파악하는 단서가 돼요."}
+];
+
+function openMiniGame() {
+  if (!game || game.ended) return;
+  miniQuestion = quizBank[Math.floor(Math.random()*quizBank.length)];
+  selectedAnswer=null;
+  const root=document.getElementById("modalRoot");
+  root.classList.remove("hidden");
+  root.innerHTML=`<div class="overlay"><div class="modal">
+    <h2>🎯 건강 상식 미니게임</h2>
+    <p>${escapeHTML(miniQuestion.q)}</p>
+    <div class="grid">${miniQuestion.a.map((a,i)=>`<button onclick="selectMini(${i})" id="mini${i}">${escapeHTML(a)}</button>`).join("")}</div>
+    <div id="miniFeedback" class="notice hidden"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="primary" onclick="submitMini()">답 확인하기</button>
+      <button onclick="closeModal()">닫기</button>
+    </div>
+  </div></div>`;
+}
+
+function selectMini(i) {
+  selectedAnswer=i;
+  miniQuestion.a.forEach((_,j)=>{
+    document.getElementById("mini"+j).classList.toggle("active",i===j);
+  });
+}
+
+function submitMini() {
+  if (selectedAnswer===null) {
+    document.getElementById("miniFeedback").textContent="먼저 답을 선택해 주세요.";
+    document.getElementById("miniFeedback").classList.remove("hidden");
+    return;
+  }
+  const correct=selectedAnswer===miniQuestion.correct;
+  if (correct) {
+    game.coins+=5; change("affection",3); game.score+=10;
+  } else {
+    game.coins+=1;
+  }
+  game.quizCount++;
+  const feedback=document.getElementById("miniFeedback");
+  feedback.textContent=(correct?"정답이에요! 코인 5개를 얻었어요. ":"다시 배워 봐요! 코인 1개를 얻었어요. ")+miniQuestion.ex;
+  feedback.classList.remove("hidden");
+  document.querySelectorAll("#modalRoot .grid button").forEach(b=>b.disabled=true);
+  log("건강 상식 퀴즈 · "+(correct?"정답!":"오답.")+" "+miniQuestion.ex);
+  update();
+}
+
+function closeModal() {
+  document.getElementById("modalRoot").classList.add("hidden");
+  document.getElementById("modalRoot").innerHTML="";
+}
+
+function renamePet() {
+  if (!game || game.ended) return;
+  const name=prompt("새로운 이름을 입력해 주세요.",game.name);
+  if (name && name.trim()) {
+    game.name=name.trim().slice(0,10);
+    log("이름 변경 · 이제 "+game.name+"라고 불러요!");
+    update();
+  }
+}
+
+function checkGameOver() {
+  if (game.stats.health<=0) {
+    game.stats.health=0;
+    game.ended=true;
+    showEnding(false);
+  }
+}
+
+function finishGame() {
+  game.ended=true;
+  showEnding(true);
+}
+
+function showEnding(completed) {
+  document.getElementById("gameScreen").classList.add("hidden");
+  const end=document.getElementById("endScreen");
+  end.classList.remove("hidden");
+  const s=game.stats;
+  const score=Math.round(s.health*.35+s.mood*.2+s.fullness*.15+s.cleanliness*.1+s.energy*.1+s.affection*.1+game.score);
+  const grade=score>=90?"S":score>=75?"A":score>=60?"B":score>=40?"C":"D";
+  end.innerHTML=`
+    <div style="text-align:center;padding:20px 0">
+      <div style="font-size:55px">${completed?"🏆":"💔"}</div>
+      <h2>${completed?"15일 돌봄 완료!":"돌봄이 중단되었어요"}</h2>
+      <p>${escapeHTML(game.name)}와 함께한 시간은 소중한 경험이었어요.</p>
+      <div class="card" style="margin:20px auto;max-width:330px">
+        <p>최종 점수</p><div style="font-size:38px;font-weight:bold;color:#cb7594">${score}</div>
+        <p>등급 <b>${grade}</b></p>
+        <p>남은 건강 ${Math.round(s.health)} · 기분 ${Math.round(s.mood)}</p>
+        <p>미니게임 정답 보너스 ${game.score}점</p>
+      </div>
+      <p>${completed
+        ?"꾸준한 돌봄이 건강에 어떤 영향을 주는지 경험했어요!"
+        :"건강이 나빠지기 전에 변화를 알아차리는 것이 중요해요. 다시 도전해 보세요."}</p>
+      <button class="primary" onclick="restartGame()">새로운 반려동물 돌보기</button>
+      <button onclick="saveGame()">기록 저장하기</button>
+    </div>
+    <h3>📅 돌봄 기록</h3>
+    <div class="log">${game.log.map(item=>`<p><b>${item.day}일차</b> · ${escapeHTML(item.message)}</p>`).join("")}</div>
+  `;
+}
+
+function restartGame() {
+  document.getElementById("endScreen").classList.add("hidden");
+  document.getElementById("gameScreen").classList.add("hidden");
+  document.getElementById("startScreen").classList.remove("hidden");
+}
+
+function saveGame() {
+  if (!game) return;
+  const data={
+    game, ownedBackgrounds,
+    savedAt:new Date().toISOString()
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="meongnyang-save.json";
+  a.click();
+  URL.revokeObjectURL(url);
+  showMessage("돌봄 기록 파일을 다운로드했어요. 파일을 안전한 곳에 보관해 주세요.");
+}
+</script>
+</body>
+</html>
